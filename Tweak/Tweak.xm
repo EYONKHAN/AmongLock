@@ -11,7 +11,7 @@ BOOL enabled;
 	%orig;
 
 	// add background video if use as wallpaper is disabled
-	if (!useAsWallpaperSwitch) {
+	if (enableBackgroundVideoSwitch && !useAsWallpaperSwitch) {
 		NSString* backgroundFilePath = [NSString stringWithFormat:@"/Library/PreferenceBundles/AmongLockPrefs.bundle/background.mp4"];
 		NSURL* backgroundUrl = [NSURL fileURLWithPath:backgroundFilePath];
 
@@ -33,66 +33,72 @@ BOOL enabled;
 
 
 	// ejection video
-	NSString* ejectionFilePath;
-	if (isiPhone)
-		ejectionFilePath = [NSString stringWithFormat:@"/Library/PreferenceBundles/AmongLockPrefs.bundle/ejectioniphone.mp4"];
-	else if (isiPod)
-		ejectionFilePath = [NSString stringWithFormat:@"/Library/PreferenceBundles/AmongLockPrefs.bundle/ejectionipod.mp4"];
-	else if (isiPad)
-		ejectionFilePath = [NSString stringWithFormat:@"/Library/PreferenceBundles/AmongLockPrefs.bundle/ejectionipad.mp4"];
-    NSURL* ejectionUrl = [NSURL fileURLWithPath:ejectionFilePath];
+	if (enableEjectionVideoSwitch) {
+		NSString* ejectionFilePath;
+		if (isiPhone)
+			ejectionFilePath = [NSString stringWithFormat:@"/Library/PreferenceBundles/AmongLockPrefs.bundle/ejectioniphone.mp4"];
+		else if (isiPod)
+			ejectionFilePath = [NSString stringWithFormat:@"/Library/PreferenceBundles/AmongLockPrefs.bundle/ejectionipod.mp4"];
+		else if (isiPad)
+			ejectionFilePath = [NSString stringWithFormat:@"/Library/PreferenceBundles/AmongLockPrefs.bundle/ejectionipad.mp4"];
+		NSURL* ejectionUrl = [NSURL fileURLWithPath:ejectionFilePath];
 
-    if (!ejectionPlayerItem) ejectionPlayerItem = [AVPlayerItem playerItemWithURL:ejectionUrl];
+		if (!ejectionPlayerItem) ejectionPlayerItem = [AVPlayerItem playerItemWithURL:ejectionUrl];
 
-    if (!ejectionPlayer) ejectionPlayer = [AVPlayer playerWithPlayerItem:ejectionPlayerItem];
-    [ejectionPlayer setVolume:1.0];
-	[ejectionPlayer setPreventsDisplaySleepDuringVideoPlayback:NO];
+		if (!ejectionPlayer) ejectionPlayer = [AVPlayer playerWithPlayerItem:ejectionPlayerItem];
+		[ejectionPlayer setVolume:1.0];
+		[ejectionPlayer setPreventsDisplaySleepDuringVideoPlayback:NO];
 
-    if (!ejectionPlayerLayer) ejectionPlayerLayer = [AVPlayerLayer playerLayerWithPlayer:ejectionPlayer];
-    [ejectionPlayerLayer setVideoGravity:AVLayerVideoGravityResizeAspectFill];
-    [ejectionPlayerLayer setFrame:[[[self view] layer] bounds]];
-	[ejectionPlayerLayer setHidden:YES];
+		if (!ejectionPlayerLayer) ejectionPlayerLayer = [AVPlayerLayer playerLayerWithPlayer:ejectionPlayer];
+		[ejectionPlayerLayer setVideoGravity:AVLayerVideoGravityResizeAspectFill];
+		[ejectionPlayerLayer setFrame:[[[self view] layer] bounds]];
+		[ejectionPlayerLayer setHidden:YES];
 
-    [[[self view] layer] addSublayer:ejectionPlayerLayer];
+		[[[self view] layer] addSublayer:ejectionPlayerLayer];
+	}
 
 
 	// emergency call video
-	NSString* emergencyCallFilePath = [NSString stringWithFormat:@"/Library/PreferenceBundles/AmongLockPrefs.bundle/emergencyCall.mp4"];
-    NSURL* emergencyCallUrl = [NSURL fileURLWithPath:emergencyCallFilePath];
+	if (enableEmergencyCallVideoSwitch) {
+		NSString* emergencyCallFilePath = [NSString stringWithFormat:@"/Library/PreferenceBundles/AmongLockPrefs.bundle/emergencyCall.mp4"];
+		NSURL* emergencyCallUrl = [NSURL fileURLWithPath:emergencyCallFilePath];
 
-    if (!emergencyCallPlayerItem) emergencyCallPlayerItem = [AVPlayerItem playerItemWithURL:emergencyCallUrl];
+		if (!emergencyCallPlayerItem) emergencyCallPlayerItem = [AVPlayerItem playerItemWithURL:emergencyCallUrl];
 
-    if (!emergencyCallPlayer) emergencyCallPlayer = [AVPlayer playerWithPlayerItem:emergencyCallPlayerItem];
-    [emergencyCallPlayer setVolume:1.0];
-	[emergencyCallPlayer setPreventsDisplaySleepDuringVideoPlayback:NO];
+		if (!emergencyCallPlayer) emergencyCallPlayer = [AVPlayer playerWithPlayerItem:emergencyCallPlayerItem];
+		[emergencyCallPlayer setVolume:1.0];
+		[emergencyCallPlayer setPreventsDisplaySleepDuringVideoPlayback:NO];
 
-    if (!emergencyCallPlayerLayer) emergencyCallPlayerLayer = [AVPlayerLayer playerLayerWithPlayer:emergencyCallPlayer];
-    [emergencyCallPlayerLayer setVideoGravity:AVLayerVideoGravityResizeAspectFill];
-    [emergencyCallPlayerLayer setFrame:[[[self view] layer] bounds]];
-	[emergencyCallPlayerLayer setHidden:YES];
+		if (!emergencyCallPlayerLayer) emergencyCallPlayerLayer = [AVPlayerLayer playerLayerWithPlayer:emergencyCallPlayer];
+		// [emergencyCallPlayerLayer setVideoGravity:AVLayerVideoGravityResizeAspectFill];
+		[emergencyCallPlayerLayer setFrame:[[[self view] layer] bounds]];
+		[emergencyCallPlayerLayer setHidden:YES];
 
-    [[[self view] layer] addSublayer:emergencyCallPlayerLayer];
+		[[[self view] layer] addSublayer:emergencyCallPlayerLayer];
+	}
 
 
-	[[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryAmbient error:nil];
+	if (enableBackgroundVideoSwitch || enableEjectionVideoSwitch || enableEmergencyCallVideoSwitch) [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryAmbient error:nil];
 
 
 	// view to block passcode
-	viewToBlockPasscode = [[UIView alloc] initWithFrame:[[self view] bounds]];
-	[viewToBlockPasscode setBackgroundColor:[UIColor clearColor]];
-	[viewToBlockPasscode setHidden:YES];
+	if (enableEjectionVideoSwitch) {
+		viewToBlockPasscode = [[UIView alloc] initWithFrame:[[self view] bounds]];
+		[viewToBlockPasscode setBackgroundColor:[UIColor clearColor]];
+		[viewToBlockPasscode setHidden:YES];
 
-	[[self view] addSubview:viewToBlockPasscode];
+		[[self view] addSubview:viewToBlockPasscode];
 
-	if (tapToDismissEjectionSwitch) {
-		UITapGestureRecognizer* tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(ejectionVideoFinishedPlaying)];
-		[tap setNumberOfTapsRequired:1];
-		[tap setNumberOfTouchesRequired:1];
-		[viewToBlockPasscode addGestureRecognizer:tap];
+		if (tapToDismissEjectionSwitch) {
+			UITapGestureRecognizer* tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(ejectionVideoFinishedPlaying)];
+			[tap setNumberOfTapsRequired:1];
+			[tap setNumberOfTouchesRequired:1];
+			[viewToBlockPasscode addGestureRecognizer:tap];
+		}
 	}
 	
-	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(ejectionVideoFinishedPlaying) name:AVPlayerItemDidPlayToEndTimeNotification object:[ejectionPlayer currentItem]];
-	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(layoutPlayerLayer:) name:@"amonglockLayoutPlayerLayer" object:nil];
+	if (enableEjectionVideoSwitch) [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(ejectionVideoFinishedPlaying) name:AVPlayerItemDidPlayToEndTimeNotification object:[ejectionPlayer currentItem]];
+	if (changeFrameWhenRotatingSwitch) [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(layoutPlayerLayer:) name:@"amonglockLayoutPlayerLayer" object:nil];
 
 }
 
@@ -108,10 +114,12 @@ BOOL enabled;
 		[backgroundPlayer play];
 	}
 
-	SystemSoundID sound = 0;
-	AudioServicesDisposeSystemSoundID(sound);
-	AudioServicesCreateSystemSoundID((CFURLRef) CFBridgingRetain([NSURL fileURLWithPath:@"/Library/PreferenceBundles/AmongLockPrefs.bundle/passcodeAppeared.mp3"]), &sound);
-	AudioServicesPlaySystemSound((SystemSoundID)sound);
+	if (passcodeAppearSoundSwitch) {
+		SystemSoundID sound = 0;
+		AudioServicesDisposeSystemSoundID(sound);
+		AudioServicesCreateSystemSoundID((CFURLRef) CFBridgingRetain([NSURL fileURLWithPath:@"/Library/PreferenceBundles/AmongLockPrefs.bundle/passcodeAppeared.mp3"]), &sound);
+		AudioServicesPlaySystemSound((SystemSoundID)sound);
+	}
 
 }
 
@@ -121,10 +129,12 @@ BOOL enabled;
 
 	[[NSNotificationCenter defaultCenter] postNotificationName:@"amonglockUnhideElements" object:nil];
 
-	[viewToBlockPasscode setHidden:YES];
-	[ejectionPlayerLayer setHidden:YES];
-	[ejectionPlayer pause];
-	[ejectionPlayer seekToTime:CMTimeMakeWithSeconds(0.0 , 1)];
+	if (enableEjectionVideoSwitch) {
+		[viewToBlockPasscode setHidden:YES];
+		[ejectionPlayerLayer setHidden:YES];
+		[ejectionPlayer pause];
+		[ejectionPlayer seekToTime:CMTimeMakeWithSeconds(0.0 , 1)];
+	}
 
 }
 
@@ -132,10 +142,12 @@ BOOL enabled;
 - (void)ejectionVideoFinishedPlaying { // reset buttons and hide ejection video when done playing
 
 	[[NSNotificationCenter defaultCenter] postNotificationName:@"amonglockFailedAttemptReset" object:nil];
-	[viewToBlockPasscode setHidden:YES];
-	[ejectionPlayerLayer setHidden:YES];
-	[ejectionPlayer pause];
-	[ejectionPlayer seekToTime:CMTimeMakeWithSeconds(0.0 , 1)];
+	if (enableEjectionVideoSwitch) {
+		[viewToBlockPasscode setHidden:YES];
+		[ejectionPlayerLayer setHidden:YES];
+		[ejectionPlayer pause];
+		[ejectionPlayer seekToTime:CMTimeMakeWithSeconds(0.0 , 1)];
+	}
 
 }
 
@@ -143,8 +155,8 @@ BOOL enabled;
 - (void)layoutPlayerLayer:(NSNotification *)notification {
 
 	if (![notification.name isEqual:@"amonglockLayoutPlayerLayer"]) return;
-	[backgroundPlayerLayer setFrame:[[[self view] layer] bounds]];
-	[ejectionPlayerLayer setFrame:[[[self view] layer] bounds]];
+	if (enableBackgroundVideoSwitch) [backgroundPlayerLayer setFrame:[[[self view] layer] bounds]];
+	if (enableEjectionVideoSwitch) [ejectionPlayerLayer setFrame:[[[self view] layer] bounds]];
 
 }
 
@@ -156,7 +168,7 @@ BOOL enabled;
 
 	%orig;
 
-	if (!useAsWallpaperSwitch) return;
+	if (!enableBackgroundVideoSwitch && !useAsWallpaperSwitch) return;
 	NSString* backgroundFilePath = [NSString stringWithFormat:@"/Library/PreferenceBundles/AmongLockPrefs.bundle/background.mp4"];
 	NSURL* backgroundUrl = [NSURL fileURLWithPath:backgroundFilePath];
 
@@ -177,7 +189,7 @@ BOOL enabled;
 
 	[[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryAmbient error:nil];
 
-	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(layoutPlayerLayer:) name:@"amonglockLayoutPlayerLayer" object:nil];
+	if (changeFrameWhenRotatingSwitch) [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(layoutPlayerLayer:) name:@"amonglockLayoutPlayerLayer" object:nil];
 
 }
 
@@ -185,7 +197,7 @@ BOOL enabled;
 
 	%orig;
 
-	if (!useAsWallpaperSwitch) return;
+	if (enableBackgroundVideoSwitch && !useAsWallpaperSwitch) return;
 	[backgroundPlayer seekToTime:CMTimeMakeWithSeconds(0.0 , 1)];
 	[backgroundPlayerLayer setHidden:NO];
 	[backgroundPlayer play];
@@ -196,7 +208,7 @@ BOOL enabled;
 
 	%orig;
 
-	if (!useAsWallpaperSwitch) return;
+	if (enableBackgroundVideoSwitch && !useAsWallpaperSwitch) return;
 	[backgroundPlayerLayer setHidden:YES];
 	[backgroundPlayer pause];
 	[backgroundPlayer seekToTime:CMTimeMakeWithSeconds(0.0 , 1)];
@@ -219,7 +231,7 @@ BOOL enabled;
 
 	%orig;
 
-	if (!useAsWallpaperSwitch) return;
+	if (enableBackgroundVideoSwitch && !useAsWallpaperSwitch) return;
 	MTMaterialView* blurView = MSHookIvar<MTMaterialView *>(self, "_materialView");
 	UIView* dimView1 = MSHookIvar<UIView *>(self, "_lightenSourceOverView");
 	UIView* dimView2 = MSHookIvar<UIView *>(self, "_plusDView");
@@ -238,6 +250,7 @@ BOOL enabled;
 
 	%orig;
 
+	if (!enableBulbsSwitch) return;
 	[self setClipsToBounds:NO];
 
 	NSMutableArray* indicators = MSHookIvar<NSMutableArray *>(self, "_characterIndicators");
@@ -256,7 +269,7 @@ BOOL enabled;
 
 - (id)initWithFrame:(CGRect)frame { // add notification observer
 
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(receiveUnlockNotification:) name:@"amonglockUnlockedWithBiometrics" object:nil];
+    if (enableBulbsSwitch) [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(receiveUnlockNotification:) name:@"amonglockUnlockedWithBiometrics" object:nil];
 
 	return %orig;
 
@@ -266,6 +279,7 @@ BOOL enabled;
 
     %orig;
 
+	if (!enableBulbsSwitch) return;
     if ([[self delegate] isKindOfClass:%c(SBUISimpleFixedDigitPasscodeEntryField)]) {
         NSMutableArray* indicators = [[self delegate] valueForKey:@"_characterIndicators"];
 		SBUINumericPasscodeEntryFieldBase* entryBase = [self delegate];
@@ -288,6 +302,7 @@ BOOL enabled;
 %new
 - (void)receiveUnlockNotification:(NSNotification *)notification { // update bulbs if authenticated with biometrics
 
+	if (!enableBulbsSwitch) return;
 	if (![notification.name isEqual:@"amonglockUnlockedWithBiometrics"]) return;
 	SBUINumericPasscodeEntryFieldBase* entryBase = [self delegate];
 	if ([entryBase maxNumbersAllowed] == 4)
@@ -305,6 +320,7 @@ BOOL enabled;
 
 	%orig;
 	
+	if (!themePasscodeSwitch) return;
 	if (!passcodeBackground) {
 		passcodeBackground = [[UIImageView alloc] initWithFrame:[self bounds]];
 		passcodeBackground.bounds = CGRectInset(passcodeBackground.frame, -35, -35);
@@ -324,7 +340,8 @@ BOOL enabled;
 - (void)didMoveToWindow { // add passcode button image
 
 	%orig;
-
+	
+	if (!themePasscodeSwitch) return;
 	passcodeButton = [[UIImageView alloc] initWithFrame:[self bounds]];
 	passcodeButton.bounds = CGRectInset(passcodeButton.frame, 12, 7);
 	[passcodeButton setImage:[UIImage imageWithContentsOfFile:@"/Library/PreferenceBundles/AmongLockPrefs.bundle/passcodeButtonOff.png"]];
@@ -342,6 +359,7 @@ BOOL enabled;
 %new
 - (void)changePasscodeButtonImages { // change passcode images to the 'on' state images
 
+	if (!themePasscodeSwitch) return;
 	passcodeButton = [[UIImageView alloc] initWithFrame:[self bounds]];
 	passcodeButton.bounds = CGRectInset(passcodeButton.frame, 12, 7);
 	[passcodeButton setImage:[UIImage imageWithContentsOfFile:@"/Library/PreferenceBundles/AmongLockPrefs.bundle/passcodeButtonOn.png"]];
@@ -353,7 +371,7 @@ BOOL enabled;
 %new
 - (void)failedPasscodeAttemptAnimation:(NSNotification *)notification { // passcode button animation on failed passcode
 
-	if (![notification.name isEqual:@"amonglockFailedAttemptAnimation"]) return;
+	if (!wrongPasscodeAnimationSwitch || ![notification.name isEqual:@"amonglockFailedAttemptAnimation"]) return;
 	if (isBlocked || (unlockSource == 18 || unlockSource == 9)) return;
 	
 	passcodeButton = [[UIImageView alloc] initWithFrame:[self bounds]];
@@ -402,7 +420,10 @@ BOOL enabled;
 
 - (void)setColor:(UIColor *)arg1 { // remove passcode button background
 
-	%orig(nil);
+	if (themePasscodeSwitch)
+		%orig(nil);
+	else
+		%orig;
 
 }
 
@@ -410,23 +431,23 @@ BOOL enabled;
 
 %hook SBUIPasscodeLockNumberPad
 
-- (void)setAlpha:(double)alpha {
+// - (void)setAlpha:(double)alpha {
 
-	%orig;
+// 	%orig;
 
-	if (invisibleEmergencyButtonSwitch && !hideEmergencyButtonSwitch) {
-		SBUIButton* emergencyCallButton = MSHookIvar<SBUIButton *>(self, "_emergencyCallButton");
-		[emergencyCallButton setAlpha:0.0];
-	}
+// 	if (invisibleEmergencyButtonSwitch && !hideEmergencyButtonSwitch) {
+// 		SBUIButton* emergencyCallButton = MSHookIvar<SBUIButton *>(self, "_emergencyCallButton");
+// 		[emergencyCallButton setAlpha:0.0];
+// 	}
 
-	if (invisibleCancelButtonSwitch && !hideCancelButtonSwitch) {
-		SBUIButton* backspaceButton = MSHookIvar<SBUIButton *>(self, "_backspaceButton");
-		SBUIButton* cancelButton = MSHookIvar<SBUIButton *>(self, "_cancelButton");
-		[backspaceButton setAlpha:0.0];
-		[cancelButton setAlpha:0.0];
-	}
+// 	if (invisibleCancelButtonSwitch && !hideCancelButtonSwitch) {
+// 		SBUIButton* backspaceButton = MSHookIvar<SBUIButton *>(self, "_backspaceButton");
+// 		SBUIButton* cancelButton = MSHookIvar<SBUIButton *>(self, "_cancelButton");
+// 		[backspaceButton setAlpha:0.0];
+// 		[cancelButton setAlpha:0.0];
+// 	}
 
-}
+// }
 
 - (void)didMoveToWindow { // hide emergency call, backspace, cancel button
 
@@ -451,16 +472,12 @@ BOOL enabled;
 
 - (void)_emergencyCallButtonHit { // emergency call animation
 
+	%orig;
+
+	if (!enableEmergencyCallVideoSwitch) return;
 	[emergencyCallPlayer seekToTime:CMTimeMakeWithSeconds(0.0 , 1)];
 	[emergencyCallPlayerLayer setHidden:NO];
 	[emergencyCallPlayer play];
-
-	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1.4 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
-		[emergencyCallPlayerLayer setHidden:YES];
-		[emergencyCallPlayer pause];
-		[emergencyCallPlayer seekToTime:CMTimeMakeWithSeconds(0.0 , 1)];
-		%orig;
-	});
 
 }
 
@@ -473,36 +490,44 @@ BOOL enabled;
 	%orig;
 
 	if ([self isUILocked]) {
-		[[NSNotificationCenter defaultCenter] postNotificationName:@"amonglockFailedAttemptAnimation" object:nil];
-		
 		if (isBlocked || (unlockSource == 18 || unlockSource == 9)) return;
-		[viewToBlockPasscode setHidden:NO];
-		dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1.5 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
-			[ejectionPlayer seekToTime:CMTimeMakeWithSeconds(0.0 , 1)];
-			[ejectionPlayerLayer setHidden:NO];
-			[ejectionPlayer play];
-		});
+		if (wrongPasscodeAnimationSwitch) [[NSNotificationCenter defaultCenter] postNotificationName:@"amonglockFailedAttemptAnimation" object:nil];
+		if (enableEjectionVideoSwitch) [viewToBlockPasscode setHidden:NO];
 
-		SystemSoundID sound = 0;
-		AudioServicesDisposeSystemSoundID(sound);
-		AudioServicesCreateSystemSoundID((CFURLRef) CFBridgingRetain([NSURL fileURLWithPath:@"/Library/PreferenceBundles/AmongLockPrefs.bundle/wrongPasscode.mp3"]), &sound);
-		AudioServicesPlaySystemSound((SystemSoundID)sound);
+		if (enableEjectionVideoSwitch) {
+			dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1.5 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+				[ejectionPlayer seekToTime:CMTimeMakeWithSeconds(0.0 , 1)];
+				[ejectionPlayerLayer setHidden:NO];
+				[ejectionPlayer play];
+			});
+		}
+
+		if (wrongPasscodeSoundSwitch) {
+			SystemSoundID sound = 0;
+			AudioServicesDisposeSystemSoundID(sound);
+			AudioServicesCreateSystemSoundID((CFURLRef) CFBridgingRetain([NSURL fileURLWithPath:@"/Library/PreferenceBundles/AmongLockPrefs.bundle/wrongPasscode.mp3"]), &sound);
+			AudioServicesPlaySystemSound((SystemSoundID)sound);
+		}	
 	} else {
-		[viewToBlockPasscode setHidden:YES];
-		[ejectionPlayerLayer setHidden:YES];
-		[ejectionPlayer pause];
-		[ejectionPlayer seekToTime:CMTimeMakeWithSeconds(0.0 , 1)];
+		if (enableEjectionVideoSwitch) {
+			[viewToBlockPasscode setHidden:YES];
+			[ejectionPlayerLayer setHidden:YES];
+			[ejectionPlayer pause];
+			[ejectionPlayer seekToTime:CMTimeMakeWithSeconds(0.0 , 1)];
+		}
 
-		if (!useAsWallpaperSwitch) {
+		if (enableBackgroundVideoSwitch && !useAsWallpaperSwitch) {
 			[backgroundPlayerLayer setHidden:YES];
 			[backgroundPlayer pause];
 			[backgroundPlayer seekToTime:CMTimeMakeWithSeconds(0.0 , 1)];
 		}
 
-		SystemSoundID sound = 0;
-		AudioServicesDisposeSystemSoundID(sound);
-		AudioServicesCreateSystemSoundID((CFURLRef) CFBridgingRetain([NSURL fileURLWithPath:@"/Library/PreferenceBundles/AmongLockPrefs.bundle/passcodeDisappeared.mp3"]), &sound);
-		AudioServicesPlaySystemSound((SystemSoundID)sound);
+		if (passcodeDisappearSoundSwitch) {
+			SystemSoundID sound = 0;
+			AudioServicesDisposeSystemSoundID(sound);
+			AudioServicesCreateSystemSoundID((CFURLRef) CFBridgingRetain([NSURL fileURLWithPath:@"/Library/PreferenceBundles/AmongLockPrefs.bundle/passcodeDisappeared.mp3"]), &sound);
+			AudioServicesPlaySystemSound((SystemSoundID)sound);
+		}
 	}
 
 }
@@ -549,7 +574,7 @@ BOOL enabled;
 
 	%orig;
 
-	if (arg1) [[NSNotificationCenter defaultCenter] postNotificationName:@"amonglockUnlockedWithBiometrics" object:nil];
+	if (enableBulbsSwitch && arg1) [[NSNotificationCenter defaultCenter] postNotificationName:@"amonglockUnlockedWithBiometrics" object:nil];
 
 }
 
@@ -573,6 +598,7 @@ BOOL enabled;
 
 	%orig;
 
+	if (!passcodeButtonSoundSwitch) return;
 	SystemSoundID sound = 0;
 	AudioServicesDisposeSystemSoundID(sound);
 	AudioServicesCreateSystemSoundID((CFURLRef) CFBridgingRetain([NSURL fileURLWithPath:[NSString stringWithFormat:@"/Library/PreferenceBundles/AmongLockPrefs.bundle/button%d.mp3", arc4random_uniform(4)]]), &sound);
@@ -601,6 +627,7 @@ BOOL enabled;
 
 	%orig;
 
+	if (!changeFrameWhenRotatingSwitch) return;
 	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 0.1 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
 		[[NSNotificationCenter defaultCenter] postNotificationName:@"amonglockLayoutPlayerLayer" object:nil];
 	});
@@ -788,8 +815,28 @@ BOOL enabled;
 
 	[preferences registerBool:&enabled default:nil forKey:@"Enabled"];
 
-	// Background
+	// Background Video
+	[preferences registerBool:&enableBackgroundVideoSwitch default:YES forKey:@"enableBackgroundVideo"];
 	[preferences registerBool:&useAsWallpaperSwitch default:NO forKey:@"useAsWallpaper"];
+
+	// Ejection Video
+	[preferences registerBool:&enableEjectionVideoSwitch default:YES forKey:@"enableEjectionVideo"];
+
+	// Emergency Call Video
+	[preferences registerBool:&enableEmergencyCallVideoSwitch default:YES forKey:@"enableEmergencyCallVideo"];
+
+	// Bulbs
+	[preferences registerBool:&enableBulbsSwitch default:YES forKey:@"enableBulbs"];
+
+	// Passcode
+	[preferences registerBool:&themePasscodeSwitch default:YES forKey:@"themePasscode"];
+	[preferences registerBool:&wrongPasscodeAnimationSwitch default:YES forKey:@"wrongPasscodeAnimation"];
+
+	// Audio
+	[preferences registerBool:&passcodeAppearSoundSwitch default:YES forKey:@"passcodeAppearSound"];
+	[preferences registerBool:&passcodeDisappearSoundSwitch default:YES forKey:@"passcodeDisappearSound"];
+	[preferences registerBool:&wrongPasscodeSoundSwitch default:YES forKey:@"wrongPasscodeSound"];
+	[preferences registerBool:&passcodeButtonSoundSwitch default:YES forKey:@"passcodeButtonSound"];
 
 	// Hiding
 	[preferences registerBool:&hideEmergencyButtonSwitch default:NO forKey:@"hideEmergencyButton"];
@@ -800,6 +847,7 @@ BOOL enabled;
 
 	// Miscellaneous
 	[preferences registerBool:&tapToDismissEjectionSwitch default:YES forKey:@"tapToDismissEjection"];
+	[preferences registerBool:&changeFrameWhenRotatingSwitch default:YES forKey:@"changeFrameWhenRotating"];
 
 	struct utsname systemInfo;
     uname(&systemInfo);

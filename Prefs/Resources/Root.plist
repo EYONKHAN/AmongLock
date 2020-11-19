@@ -30,6 +30,20 @@
 			<key>cell</key>
 			<string>PSSwitchCell</string>
 			<key>default</key>
+			<true/>
+			<key>defaults</key>
+			<string>love.litten.amonglockpreferences</string>
+			<key>key</key>
+			<string>enableBackgroundVideo</string>
+			<key>label</key>
+			<string>Enable</string>
+			<key>PostNotification</key>
+			<string>love.litten.amonglockpreferences/ReloadPrefs</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
 			<false/>
 			<key>defaults</key>
 			<string>love.litten.amonglockpreferences</string>
@@ -37,6 +51,169 @@
 			<string>useAsWallpaper</string>
 			<key>label</key>
 			<string>Use As Wallpaper</string>
+			<key>PostNotification</key>
+			<string>love.litten.amonglockpreferences/ReloadPrefs</string>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Ejection Video</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<true/>
+			<key>defaults</key>
+			<string>love.litten.amonglockpreferences</string>
+			<key>key</key>
+			<string>enableEjectionVideo</string>
+			<key>label</key>
+			<string>Enable</string>
+			<key>PostNotification</key>
+			<string>love.litten.amonglockpreferences/ReloadPrefs</string>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Emergency Call Video</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<true/>
+			<key>defaults</key>
+			<string>love.litten.amonglockpreferences</string>
+			<key>key</key>
+			<string>enableEmergencyCallVideo</string>
+			<key>label</key>
+			<string>Enable</string>
+			<key>enabled</key>
+			<false/>
+			<key>PostNotification</key>
+			<string>love.litten.amonglockpreferences/ReloadPrefs</string>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Bulbs</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<true/>
+			<key>defaults</key>
+			<string>love.litten.amonglockpreferences</string>
+			<key>key</key>
+			<string>enableBulbs</string>
+			<key>label</key>
+			<string>Enable</string>
+			<key>PostNotification</key>
+			<string>love.litten.amonglockpreferences/ReloadPrefs</string>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Passcode</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<true/>
+			<key>defaults</key>
+			<string>love.litten.amonglockpreferences</string>
+			<key>key</key>
+			<string>themePasscode</string>
+			<key>label</key>
+			<string>Theme Passcode</string>
+			<key>PostNotification</key>
+			<string>love.litten.amonglockpreferences/ReloadPrefs</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<true/>
+			<key>defaults</key>
+			<string>love.litten.amonglockpreferences</string>
+			<key>key</key>
+			<string>wrongPasscodeAnimation</string>
+			<key>label</key>
+			<string>Wrong Passcode Animation</string>
+			<key>PostNotification</key>
+			<string>love.litten.amonglockpreferences/ReloadPrefs</string>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Audio</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<true/>
+			<key>defaults</key>
+			<string>love.litten.amonglockpreferences</string>
+			<key>key</key>
+			<string>passcodeAppearSound</string>
+			<key>label</key>
+			<string>Passcode Appears</string>
+			<key>PostNotification</key>
+			<string>love.litten.amonglockpreferences/ReloadPrefs</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<true/>
+			<key>defaults</key>
+			<string>love.litten.amonglockpreferences</string>
+			<key>key</key>
+			<string>passcodeDisappearSound</string>
+			<key>label</key>
+			<string>Passcode Disappears</string>
+			<key>PostNotification</key>
+			<string>love.litten.amonglockpreferences/ReloadPrefs</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<true/>
+			<key>defaults</key>
+			<string>love.litten.amonglockpreferences</string>
+			<key>key</key>
+			<string>wrongPasscodeSound</string>
+			<key>label</key>
+			<string>Wrong Passcode</string>
+			<key>PostNotification</key>
+			<string>love.litten.amonglockpreferences/ReloadPrefs</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<true/>
+			<key>defaults</key>
+			<string>love.litten.amonglockpreferences</string>
+			<key>key</key>
+			<string>passcodeButtonSound</string>
+			<key>label</key>
+			<string>Passcode Button Press</string>
 			<key>PostNotification</key>
 			<string>love.litten.amonglockpreferences/ReloadPrefs</string>
 		</dict>
@@ -72,6 +249,8 @@
 			<string>invisibleEmergencyButton</string>
 			<key>label</key>
 			<string>Invisible Emergency Call Button</string>
+			<key>enabled</key>
+			<false/>
 			<key>PostNotification</key>
 			<string>love.litten.amonglockpreferences/ReloadPrefs</string>
 		</dict>
@@ -100,6 +279,8 @@
 			<string>invisibleCancelButton</string>
 			<key>label</key>
 			<string>Invisible Backspace/Cancel Button</string>
+			<key>enabled</key>
+			<false/>
 			<key>PostNotification</key>
 			<string>love.litten.amonglockpreferences/ReloadPrefs</string>
 		</dict>
@@ -135,6 +316,20 @@
 			<string>tapToDismissEjection</string>
 			<key>label</key>
 			<string>Tap To Skip Ejection</string>
+			<key>PostNotification</key>
+			<string>love.litten.amonglockpreferences/ReloadPrefs</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<true/>
+			<key>defaults</key>
+			<string>love.litten.amonglockpreferences</string>
+			<key>key</key>
+			<string>changeFrameWhenRotating</string>
+			<key>label</key>
+			<string>Change Frame When Rotating</string>
 			<key>PostNotification</key>
 			<string>love.litten.amonglockpreferences/ReloadPrefs</string>
 		</dict>

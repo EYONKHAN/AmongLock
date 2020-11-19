@@ -37,7 +37,27 @@ UIImageView* backspaceButtonImage;
 UIImageView* cancelButtonImage;
 
 // background video
+BOOL enableBackgroundVideoSwitch = YES;
 BOOL useAsWallpaperSwitch = NO;
+
+// ejection video
+BOOL enableEjectionVideoSwitch = YES;
+
+// emergency call video
+BOOL enableEmergencyCallVideoSwitch = YES;
+
+// bulbs
+BOOL enableBulbsSwitch = YES;
+
+// passcode
+BOOL themePasscodeSwitch = YES;
+BOOL wrongPasscodeAnimationSwitch = YES;
+
+// audio
+BOOL passcodeAppearSoundSwitch = YES;
+BOOL passcodeDisappearSoundSwitch = YES;
+BOOL wrongPasscodeSoundSwitch = YES;
+BOOL passcodeButtonSoundSwitch = YES;
 
 // hiding
 BOOL hideEmergencyButtonSwitch = NO;
@@ -48,6 +68,7 @@ BOOL hideFaceIDAnimationSwitch = YES;
 
 // miscellaneous
 BOOL tapToDismissEjectionSwitch = YES;
+BOOL changeFrameWhenRotatingSwitch = YES;
 
 @interface CSPasscodeViewController : UIViewController
 - (void)ejectionVideoFinishedPlaying;
