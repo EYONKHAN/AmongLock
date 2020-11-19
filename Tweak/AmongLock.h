@@ -23,6 +23,10 @@ AVPlayer* ejectionPlayer;
 AVPlayerItem* ejectionPlayerItem;
 AVPlayerLayer* ejectionPlayerLayer;
 
+AVPlayer* emergencyCallPlayer;
+AVPlayerItem* emergencyCallPlayerItem;
+AVPlayerLayer* emergencyCallPlayerLayer;
+
 UIView* viewToBlockPasscode;
 
 UIImageView* passcodeBackground;
@@ -37,7 +41,9 @@ BOOL useAsWallpaperSwitch = NO;
 
 // hiding
 BOOL hideEmergencyButtonSwitch = NO;
+BOOL invisibleEmergencyButtonSwitch = NO;
 BOOL hideCancelButtonSwitch = NO;
+BOOL invisibleCancelButtonSwitch = NO;
 BOOL hideFaceIDAnimationSwitch = YES;
 
 // miscellaneous
@@ -45,9 +51,11 @@ BOOL tapToDismissEjectionSwitch = YES;
 
 @interface CSPasscodeViewController : UIViewController
 - (void)ejectionVideoFinishedPlaying;
+- (void)layoutPlayerLayer:(NSNotification *)notification;
 @end
 
 @interface CSCoverSheetViewController : UIViewController
+- (void)layoutPlayerLayer:(NSNotification *)notification;
 @end
 
 @interface MTMaterialView : UIView
@@ -77,6 +85,7 @@ BOOL tapToDismissEjectionSwitch = YES;
 @end
 
 @interface SBLockScreenManager : NSObject
++ (id)sharedInstance;
 - (BOOL)isUILocked;
 @end
 

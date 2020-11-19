@@ -55,6 +55,25 @@ BOOL enabled;
 
     [[[self view] layer] addSublayer:ejectionPlayerLayer];
 
+
+	// emergency call video
+	NSString* emergencyCallFilePath = [NSString stringWithFormat:@"/Library/PreferenceBundles/AmongLockPrefs.bundle/emergencyCall.mp4"];
+    NSURL* emergencyCallUrl = [NSURL fileURLWithPath:emergencyCallFilePath];
+
+    if (!emergencyCallPlayerItem) emergencyCallPlayerItem = [AVPlayerItem playerItemWithURL:emergencyCallUrl];
+
+    if (!emergencyCallPlayer) emergencyCallPlayer = [AVPlayer playerWithPlayerItem:emergencyCallPlayerItem];
+    [emergencyCallPlayer setVolume:1.0];
+	[emergencyCallPlayer setPreventsDisplaySleepDuringVideoPlayback:NO];
+
+    if (!emergencyCallPlayerLayer) emergencyCallPlayerLayer = [AVPlayerLayer playerLayerWithPlayer:emergencyCallPlayer];
+    [emergencyCallPlayerLayer setVideoGravity:AVLayerVideoGravityResizeAspectFill];
+    [emergencyCallPlayerLayer setFrame:[[[self view] layer] bounds]];
+	[emergencyCallPlayerLayer setHidden:YES];
+
+    [[[self view] layer] addSublayer:emergencyCallPlayerLayer];
+
+
 	[[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryAmbient error:nil];
 
 
@@ -71,8 +90,9 @@ BOOL enabled;
 		[tap setNumberOfTouchesRequired:1];
 		[viewToBlockPasscode addGestureRecognizer:tap];
 	}
-
+	
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(ejectionVideoFinishedPlaying) name:AVPlayerItemDidPlayToEndTimeNotification object:[ejectionPlayer currentItem]];
+	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(layoutPlayerLayer:) name:@"amonglockLayoutPlayerLayer" object:nil];
 
 }
 
@@ -119,6 +139,15 @@ BOOL enabled;
 
 }
 
+%new
+- (void)layoutPlayerLayer:(NSNotification *)notification {
+
+	if (![notification.name isEqual:@"amonglockLayoutPlayerLayer"]) return;
+	[backgroundPlayerLayer setFrame:[[[self view] layer] bounds]];
+	[ejectionPlayerLayer setFrame:[[[self view] layer] bounds]];
+
+}
+
 %end
 
 %hook CSCoverSheetViewController
@@ -148,9 +177,11 @@ BOOL enabled;
 
 	[[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryAmbient error:nil];
 
+	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(layoutPlayerLayer:) name:@"amonglockLayoutPlayerLayer" object:nil];
+
 }
 
-- (void)viewWillAppear:(BOOL)animated { // play video when lockscreen appears
+- (void)viewWillAppear:(BOOL)animated { // play wallpaper when lockscreen appears
 
 	%orig;
 
@@ -161,7 +192,7 @@ BOOL enabled;
 
 }
 
-- (void)viewWillDisappear:(BOOL)animated { // stop video when lockscreen disappears
+- (void)viewWillDisappear:(BOOL)animated { // stop wallpaper when lockscreen disappears
 
 	%orig;
 
@@ -169,6 +200,14 @@ BOOL enabled;
 	[backgroundPlayerLayer setHidden:YES];
 	[backgroundPlayer pause];
 	[backgroundPlayer seekToTime:CMTimeMakeWithSeconds(0.0 , 1)];
+
+}
+
+%new
+- (void)layoutPlayerLayer:(NSNotification *)notification {
+
+	if (![notification.name isEqual:@"amonglockLayoutPlayerLayer"]) return;
+	[backgroundPlayerLayer setFrame:[[[self view] layer] bounds]];
 
 }
 
@@ -247,7 +286,7 @@ BOOL enabled;
 }
 
 %new
-- (void)receiveUnlockNotification:(NSNotification *)notification {
+- (void)receiveUnlockNotification:(NSNotification *)notification { // update bulbs if authenticated with biometrics
 
 	if (![notification.name isEqual:@"amonglockUnlockedWithBiometrics"]) return;
 	SBUINumericPasscodeEntryFieldBase* entryBase = [self delegate];
@@ -312,7 +351,7 @@ BOOL enabled;
 }
 
 %new
-- (void)failedPasscodeAttemptAnimation:(NSNotification *)notification {
+- (void)failedPasscodeAttemptAnimation:(NSNotification *)notification { // passcode button animation on failed passcode
 
 	if (![notification.name isEqual:@"amonglockFailedAttemptAnimation"]) return;
 	if (isBlocked || (unlockSource == 18 || unlockSource == 9)) return;
@@ -371,21 +410,57 @@ BOOL enabled;
 
 %hook SBUIPasscodeLockNumberPad
 
+- (void)setAlpha:(double)alpha {
+
+	%orig;
+
+	if (invisibleEmergencyButtonSwitch && !hideEmergencyButtonSwitch) {
+		SBUIButton* emergencyCallButton = MSHookIvar<SBUIButton *>(self, "_emergencyCallButton");
+		[emergencyCallButton setAlpha:0.0];
+	}
+
+	if (invisibleCancelButtonSwitch && !hideCancelButtonSwitch) {
+		SBUIButton* backspaceButton = MSHookIvar<SBUIButton *>(self, "_backspaceButton");
+		SBUIButton* cancelButton = MSHookIvar<SBUIButton *>(self, "_cancelButton");
+		[backspaceButton setAlpha:0.0];
+		[cancelButton setAlpha:0.0];
+	}
+
+}
+
 - (void)didMoveToWindow { // hide emergency call, backspace, cancel button
 
 	%orig;
 
 	if (hideEmergencyButtonSwitch) {
 		SBUIButton* emergencyCallButton = MSHookIvar<SBUIButton *>(self, "_emergencyCallButton");
-		[emergencyCallButton removeFromSuperview];
+		if (hideEmergencyButtonSwitch && !invisibleEmergencyButtonSwitch)
+			[emergencyCallButton removeFromSuperview];
 	}
 
 	if (hideCancelButtonSwitch) {
 		SBUIButton* backspaceButton = MSHookIvar<SBUIButton *>(self, "_backspaceButton");
 		SBUIButton* cancelButton = MSHookIvar<SBUIButton *>(self, "_cancelButton");
-		[backspaceButton removeFromSuperview];
-		[cancelButton removeFromSuperview];
+		if (hideCancelButtonSwitch && !invisibleCancelButtonSwitch) {
+			[backspaceButton removeFromSuperview];
+			[cancelButton removeFromSuperview];
+		}
 	}
+
+}
+
+- (void)_emergencyCallButtonHit { // emergency call animation
+
+	[emergencyCallPlayer seekToTime:CMTimeMakeWithSeconds(0.0 , 1)];
+	[emergencyCallPlayerLayer setHidden:NO];
+	[emergencyCallPlayer play];
+
+	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1.4 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+		[emergencyCallPlayerLayer setHidden:YES];
+		[emergencyCallPlayer pause];
+		[emergencyCallPlayer seekToTime:CMTimeMakeWithSeconds(0.0 , 1)];
+		%orig;
+	});
 
 }
 
@@ -432,11 +507,37 @@ BOOL enabled;
 
 }
 
-- (BOOL)unlockUIFromSource:(int)arg1 withOptions:(id)arg2 {
+- (void)lockUIFromSource:(int)arg1 withOptions:(id)arg2 completion:(id)arg3 { // stop wallpaper when locked
+
+    %orig;
+
+	if (!useAsWallpaperSwitch) return;
+	[backgroundPlayerLayer setHidden:YES];
+	[backgroundPlayer pause];
+	[backgroundPlayer seekToTime:CMTimeMakeWithSeconds(0.0 , 1)];
+
+}
+
+- (BOOL)unlockUIFromSource:(int)arg1 withOptions:(id)arg2 { // get unlock source
 
 	unlockSource = arg1;
 
 	return %orig;
+
+}
+
+%end
+
+%hook SBBacklightController
+
+- (void)turnOnScreenFullyWithBacklightSource:(long long)arg1 { // play wallpaper when screen turned on
+
+	%orig;
+
+	if (!useAsWallpaperSwitch && ![[%c(SBLockScreenManager) sharedInstance] isUILocked]) return;
+	[backgroundPlayer seekToTime:CMTimeMakeWithSeconds(0.0 , 1)];
+	[backgroundPlayerLayer setHidden:NO];
+	[backgroundPlayer play];
 
 }
 
@@ -489,6 +590,20 @@ BOOL enabled;
 		return NO;
 	else
 		return %orig;
+
+}
+
+%end
+
+%hook SpringBoard
+
+- (void)noteInterfaceOrientationChanged:(long long)arg1 duration:(double)arg2 logMessage:(id)arg3 {
+
+	%orig;
+
+	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 0.1 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+		[[NSNotificationCenter defaultCenter] postNotificationName:@"amonglockLayoutPlayerLayer" object:nil];
+	});
 
 }
 
@@ -678,7 +793,9 @@ BOOL enabled;
 
 	// Hiding
 	[preferences registerBool:&hideEmergencyButtonSwitch default:NO forKey:@"hideEmergencyButton"];
+	[preferences registerBool:&invisibleEmergencyButtonSwitch default:NO forKey:@"invisibleEmergencyButton"];
 	[preferences registerBool:&hideCancelButtonSwitch default:NO forKey:@"hideCancelButton"];
+	[preferences registerBool:&invisibleCancelButtonSwitch default:NO forKey:@"invisibleCancelButton"];
 	[preferences registerBool:&hideFaceIDAnimationSwitch default:YES forKey:@"hideFaceIDAnimation"];
 
 	// Miscellaneous
