@@ -23,10 +23,6 @@ AVPlayer* ejectionPlayer;
 AVPlayerItem* ejectionPlayerItem;
 AVPlayerLayer* ejectionPlayerLayer;
 
-AVPlayer* emergencyCallPlayer;
-AVPlayerItem* emergencyCallPlayerItem;
-AVPlayerLayer* emergencyCallPlayerLayer;
-
 UIView* viewToBlockPasscode;
 
 UIImageView* passcodeBackground;
@@ -43,9 +39,6 @@ BOOL useAsWallpaperSwitch = NO;
 // ejection video
 BOOL enableEjectionVideoSwitch = YES;
 
-// emergency call video
-BOOL enableEmergencyCallVideoSwitch = YES;
-
 // bulbs
 BOOL enableBulbsSwitch = YES;
 
@@ -61,9 +54,7 @@ BOOL passcodeButtonSoundSwitch = YES;
 
 // hiding
 BOOL hideEmergencyButtonSwitch = NO;
-BOOL invisibleEmergencyButtonSwitch = NO;
 BOOL hideCancelButtonSwitch = NO;
-BOOL invisibleCancelButtonSwitch = NO;
 BOOL hideFaceIDAnimationSwitch = YES;
 
 // miscellaneous
@@ -131,4 +122,8 @@ BOOL changeFrameWhenRotatingSwitch = YES;
 @end
 
 @interface SBUIButton : UIButton
+@end
+
+@interface XENHWidgetLayerContainerView : UIView
+- (void)receiveHideNotification:(NSNotification *)notification;
 @end

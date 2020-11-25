@@ -58,27 +58,7 @@ BOOL enabled;
 	}
 
 
-	// emergency call video
-	if (enableEmergencyCallVideoSwitch) {
-		NSString* emergencyCallFilePath = [NSString stringWithFormat:@"/Library/PreferenceBundles/AmongLockPrefs.bundle/emergencyCall.mp4"];
-		NSURL* emergencyCallUrl = [NSURL fileURLWithPath:emergencyCallFilePath];
-
-		if (!emergencyCallPlayerItem) emergencyCallPlayerItem = [AVPlayerItem playerItemWithURL:emergencyCallUrl];
-
-		if (!emergencyCallPlayer) emergencyCallPlayer = [AVPlayer playerWithPlayerItem:emergencyCallPlayerItem];
-		[emergencyCallPlayer setVolume:1.0];
-		[emergencyCallPlayer setPreventsDisplaySleepDuringVideoPlayback:NO];
-
-		if (!emergencyCallPlayerLayer) emergencyCallPlayerLayer = [AVPlayerLayer playerLayerWithPlayer:emergencyCallPlayer];
-		// [emergencyCallPlayerLayer setVideoGravity:AVLayerVideoGravityResizeAspectFill];
-		[emergencyCallPlayerLayer setFrame:[[[self view] layer] bounds]];
-		[emergencyCallPlayerLayer setHidden:YES];
-
-		[[[self view] layer] addSublayer:emergencyCallPlayerLayer];
-	}
-
-
-	if (enableBackgroundVideoSwitch || enableEjectionVideoSwitch || enableEmergencyCallVideoSwitch) [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryAmbient error:nil];
+	if (enableBackgroundVideoSwitch || enableEjectionVideoSwitch) [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryAmbient error:nil];
 
 
 	// view to block passcode
@@ -412,6 +392,11 @@ BOOL enabled;
 		if (![passcodeButton isDescendantOfView:self]) [self addSubview:passcodeButton];
 	});
 
+	if (enableEjectionVideoSwitch) return;
+	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1.2 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+		[[NSNotificationCenter defaultCenter] postNotificationName:@"amonglockFailedAttemptReset" object:nil];
+	});
+
 }
 
 %end
@@ -431,53 +416,24 @@ BOOL enabled;
 
 %hook SBUIPasscodeLockNumberPad
 
-// - (void)setAlpha:(double)alpha {
-
-// 	%orig;
-
-// 	if (invisibleEmergencyButtonSwitch && !hideEmergencyButtonSwitch) {
-// 		SBUIButton* emergencyCallButton = MSHookIvar<SBUIButton *>(self, "_emergencyCallButton");
-// 		[emergencyCallButton setAlpha:0.0];
-// 	}
-
-// 	if (invisibleCancelButtonSwitch && !hideCancelButtonSwitch) {
-// 		SBUIButton* backspaceButton = MSHookIvar<SBUIButton *>(self, "_backspaceButton");
-// 		SBUIButton* cancelButton = MSHookIvar<SBUIButton *>(self, "_cancelButton");
-// 		[backspaceButton setAlpha:0.0];
-// 		[cancelButton setAlpha:0.0];
-// 	}
-
-// }
-
 - (void)didMoveToWindow { // hide emergency call, backspace, cancel button
 
 	%orig;
 
 	if (hideEmergencyButtonSwitch) {
 		SBUIButton* emergencyCallButton = MSHookIvar<SBUIButton *>(self, "_emergencyCallButton");
-		if (hideEmergencyButtonSwitch && !invisibleEmergencyButtonSwitch)
+		if (hideEmergencyButtonSwitch)
 			[emergencyCallButton removeFromSuperview];
 	}
 
 	if (hideCancelButtonSwitch) {
 		SBUIButton* backspaceButton = MSHookIvar<SBUIButton *>(self, "_backspaceButton");
 		SBUIButton* cancelButton = MSHookIvar<SBUIButton *>(self, "_cancelButton");
-		if (hideCancelButtonSwitch && !invisibleCancelButtonSwitch) {
+		if (hideCancelButtonSwitch) {
 			[backspaceButton removeFromSuperview];
 			[cancelButton removeFromSuperview];
 		}
 	}
-
-}
-
-- (void)_emergencyCallButtonHit { // emergency call animation
-
-	%orig;
-
-	if (!enableEmergencyCallVideoSwitch) return;
-	[emergencyCallPlayer seekToTime:CMTimeMakeWithSeconds(0.0 , 1)];
-	[emergencyCallPlayerLayer setHidden:NO];
-	[emergencyCallPlayer play];
 
 }
 
@@ -822,9 +778,6 @@ BOOL enabled;
 	// Ejection Video
 	[preferences registerBool:&enableEjectionVideoSwitch default:YES forKey:@"enableEjectionVideo"];
 
-	// Emergency Call Video
-	[preferences registerBool:&enableEmergencyCallVideoSwitch default:YES forKey:@"enableEmergencyCallVideo"];
-
 	// Bulbs
 	[preferences registerBool:&enableBulbsSwitch default:YES forKey:@"enableBulbs"];
 
@@ -840,9 +793,7 @@ BOOL enabled;
 
 	// Hiding
 	[preferences registerBool:&hideEmergencyButtonSwitch default:NO forKey:@"hideEmergencyButton"];
-	[preferences registerBool:&invisibleEmergencyButtonSwitch default:NO forKey:@"invisibleEmergencyButton"];
 	[preferences registerBool:&hideCancelButtonSwitch default:NO forKey:@"hideCancelButton"];
-	[preferences registerBool:&invisibleCancelButtonSwitch default:NO forKey:@"invisibleCancelButton"];
 	[preferences registerBool:&hideFaceIDAnimationSwitch default:YES forKey:@"hideFaceIDAnimation"];
 
 	// Miscellaneous
